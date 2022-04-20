@@ -18,6 +18,8 @@ class Plot:
             difference.append(abs(a - b))
         
         plt.bar(self.test_instance, difference)
+        plt.xlabel("Test Instance")
+        plt.ylabel("Error")
         plt.text(0, 6, f"Correct label predictions: {correct} / {len(self.test_instance)}")
         plt.savefig(f"figs/plot_{k}.jpg")
 
