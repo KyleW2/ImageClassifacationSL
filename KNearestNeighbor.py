@@ -1,5 +1,6 @@
 import numpy
 import pickle
+import time
 
 class KNearestNeighbor:
     def __init__(self, data: list) -> None:
@@ -30,14 +31,14 @@ class KNearestNeighbor:
         
         c = {}
         for i in range(0, len(k)):
-            c[k[i]] = self._classify(p, k[i], distances)
+            c[k[i]] = self._classify(k[i], distances)
 
         # Dictionary of {k: label}
         return c
     
     # Helper function that does the actual calculations
     # Allows for multiple K values to test with
-    def _classify(self, p: list, k: int, distances: list) -> float:
+    def _classify(self, k: int, distances: list) -> float:
         sum = 0
         for i in range(0, k):
             sum += distances[i][0][1]
@@ -92,17 +93,27 @@ if __name__ == "__main__":
     print(">> Creating the unholy frankenstein")
     allBatches = frankenstein(batch1, batch2, batch3, batch4, batch5)
 
-    print(">> Loading and formatting test data")
+    print(">> Summoning and binding test demons")
     # Load test data and format
     test = unpickle("data/test_batch")
     test_f = format(test)
     
-    print(">> Creating KNN object")
+    print(">> Forging KNN object")
     # Create KNN object
     K3 = KNearestNeighbor(allBatches)
     
+    """
     print(test_f[0][1], end = " | ") # ith label
     print(test_f[0][0]) # list of rgb values [r, r, r, .... g, b, b]
+    """
 
-    print(">> Classifying test 0")
-    print(K3.classify(test_f[0][0], [1, 3, 10, 100, 1000]))
+    print(">> Classifying tests")
+    
+    f = open("results.csv", "w")
+    f.write("test_instance,label,1,3,5,10,50,100,500,1000\n")
+    for i in range(0, 10000):
+        start_time = time.time()
+        results = K3.classify(test_f[i][0], [1, 3, 5, 10, 50, 100, 500, 1000])
+        f.write(f"{i},{test_f[i][1]},{results[1]},{results[3]},{results[5]},{results[10]},{results[50]},{results[100]},{results[500]},{results[1000]}\n")
+        print(f">> {i}th instance classified in {time.time() - start_time} seconds")
+    f.close()
