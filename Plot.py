@@ -8,11 +8,17 @@ class Plot:
         self.label = self.parser.getColumnFloat("label")
     
     def plotK(self, k: int) -> None:
+        plt.clf()
         difference = []
+        correct = 0
+
         for a, b in zip(self.label, self.parser.getColumnFloat(str(k))):
-            difference.append(a - b)
+            if a == b:
+                correct += 1
+            difference.append(abs(a - b))
         
         plt.bar(self.test_instance, difference)
+        plt.text(0, 6, f"Correct label predictions: {correct} / {len(self.test_instance)}")
         plt.savefig(f"figs/plot_{k}.jpg")
 
 if __name__ == "__main__":
