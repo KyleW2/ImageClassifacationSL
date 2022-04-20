@@ -1,7 +1,7 @@
 ### code base: ai.berkeley.edu
 
 import nn
-
+import data
 
 class DigitClassificationModel(object):
     """
@@ -111,7 +111,7 @@ class DigitClassificationModel(object):
         for example in dataset.iterate_forever(self.batch_size):
             x = example[0]
             y = example[1]
-            if dataset.get_validation_accuracy() > .98: break
+            #if dataset.get_validation_accuracy() > .98: break
             loss = self.get_loss(x, y)
             params = []
             for layer in range(self.num_hidden_layers):
@@ -128,6 +128,7 @@ class DigitClassificationModel(object):
             self.output_b.update(grads[-1], -1 * self.alpha)
 
 
-
-
+dataset = data.Dataset()
+model = DigitClassificationModel()
+model.train(dataset)
 
