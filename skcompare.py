@@ -1,6 +1,8 @@
-from sklearn.linear_model import ElasticNet, LinearRegression
-from sklearn.linear_model import LogisticRegression
+from sklearn.linear_model import ElasticNet, LinearRegression, LogisticRegression
+from sklearn.metrics import ConfusionMatrixDisplay, accuracy_score, confusion_matrix
 import pickle
+import numpy
+import matplotlib.pyplot as plt
 
 def parseData():
     # Load batches
@@ -32,19 +34,21 @@ def format(*batch) -> list:
     # Casting all values TO and int from uint8
     for b in batch:
         for i in range(len(b[b"data"])):
-            X.append([int(x) for x in b[b'data'][i]])
-            y.append(b[b'labels'][i])
+            X.append([float(x) for x in b[b'data'][i]])
+            y.append(float(b[b'labels'][i]))
     return X, y
 
 X, y, X_test, y_test = parseData()
-model1 = LinearRegression()
-model2 = LogisticRegression()
-model3 = ElasticNet()
-
-for model in model1, model2, model3:
+models = []
+models.append(LinearRegression())
+models.append(LogisticRegression())
+models.append(ElasticNet())
+y_eval = numpy.array(y_test)
+for model in models:
     model.fit(X, y)
     score = model.score(X_test, y_test)
-    predict = model.predict(X_test)
     print(score)
-
-while True: x = 0
+    predict = model.predict(X_test)
+    cm = confusion_matrix(y_test, predict)
+    ConfusionMatrixDisplay.from_predictions(y_test, predict)
+    plt.show()
