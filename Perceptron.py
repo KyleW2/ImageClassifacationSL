@@ -47,6 +47,14 @@ class Perceptron:
     
     def classify(self, y: List[float]) -> float:
         return self.sign(self.dot(numpy.insert(y, 0, 1)))
+    
+    def saveWeights(self) -> None:
+        f = open(f"ptron_{self.iterations}_iters", "w")
+
+        for i in range(0, len(self.weights)):
+            f.write(f"{self.weights[i]}\n")
+        
+        f.close()
 
 if __name__ == "__main__":
     # Load CIFAR data function
@@ -109,9 +117,11 @@ if __name__ == "__main__":
     ptron = Perceptron(allBatches, 3072 + 1, 0.1, 3)
     print(">> Computing weights...")
     ptron.computeWeights()
+    print(">> Saving weigths to file")
+    ptron.saveWeights()
 
     # Classify some tests
-    f = open("results_ptron.csv", "w")
+    f = open("results_ptron_10iter.csv", "w")
     f.write("instance,lable,predicted,correctness\n")
     correct = 0
     for i in range(0, len(test_f)):
