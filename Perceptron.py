@@ -5,12 +5,11 @@ import time
 import random
 
 class Perceptron:
-    def __init__(self, data: List[int], number_of_weights: int, learning_rate: float, iterations: int) -> None:
+    def __init__(self, data: List[int], number_of_weights: int, learning_rate: float) -> None:
         self.data = data
         # Initialize weights to random value in [-1, 1]
         self.weights = [random.uniform(-1, 1)] * number_of_weights
         self.n = learning_rate
-        self.iterations = iterations
     
     def dot(self, x: List[float]) -> float:
         sum = 0
@@ -27,8 +26,8 @@ class Perceptron:
             return 1
         return -1
     
-    def computeWeights(self) -> None:
-        for j in range(0, self.iterations):
+    def computeWeights(self, iterations: int) -> None:
+        for j in range(0, iterations):
             start_time = time.time()
 
             # Update each weight for each instance
@@ -43,13 +42,13 @@ class Perceptron:
                     for k in range(0, len(self.weights)):
                         self.weights[k] += self.n * (t - o) * x[k]
             
-            print(f">> Weight iteration {j} done in {time.time() - start_time} seconds")
+            print(f">> Weight iteration done in {time.time() - start_time} seconds")
     
     def classify(self, y: List[float]) -> float:
         return self.sign(self.dot(numpy.insert(y, 0, 1)))
     
-    def saveWeights(self) -> None:
-        f = open(f"ptron_{self.iterations}_iters", "w")
+    def saveWeights(self, f: str) -> None:
+        f = open(f, "w")
 
         for i in range(0, len(self.weights)):
             f.write(f"{self.weights[i]}\n")
@@ -114,23 +113,38 @@ if __name__ == "__main__":
     birdify(test_f)
     
     # Create Preceptron object
-    ptron = Perceptron(allBatches, 3072 + 1, 0.1, 3)
-    print(">> Computing weights...")
-    ptron.computeWeights()
-    print(">> Saving weigths to file")
-    ptron.saveWeights()
+    ptron = Perceptron(allBatches, 3072 + 1, 0.1)
 
-    # Classify some tests
-    f = open("results_ptron_10iter.csv", "w")
-    f.write("instance,lable,predicted,correctness\n")
-    correct = 0
-    for i in range(0, len(test_f)):
-        pred = ptron.classify(test_f[i][0])
+    def runTests(number_of_tests: int) -> None:
+        for j in range(0, number_of_tests):
+            start_time = time.time()
+            ptron.computeWeights(1)
+            ptron.saveWeights(f"ptron_weights_{j+1}_iter")
+            # Classify some tests
+            f = open(f"results/results_ptron_{j+1}_iter.csv", "w")
+            f.write("instance,lable,predicted,tp,tn,fp,fn,correctness\n")
+            tp = 0
+            tn = 0
+            fp = 0
+            fn = 0
+            for i in range(0, len(test_f)):
+                pred = ptron.classify(test_f[i][0])
 
-        if pred == test_f[i][1]:
-            correct += 1
+                if test_f[i][1] == 1 and pred == 1:
+                    tp += 1
+                elif test_f[i][1] == -1 and pred == -1:
+                    tn += 1
+                elif test_f[i][1] == -1 and pred == 1:
+                    fp += 1
+                elif test_f[i][1] == 1 and pred == -1:
+                    fn += 1
 
-        f.write(f"{i},{test_f[i][1]},{pred},{correct/(i+1)}\n")
-        print(f">> Test instance {i}, labeled as {test_f[i][1]}, classified as {pred}, {100 * (correct/(i+1))}% correct")
+
+                f.write(f"{i},{test_f[i][1]},{pred},{tp},{tn},{fp},{fn},{(tp + tn)/(i+1)}\n")
+            
+            print(f">> Iteration {j+1} done in {time.time() - start_time} seconds") # Test instance {i}, labeled as {test_f[i][1]}, classified as {pred}, {100 * ((tp + tn)/(i+1))}% correct")
+            
+            f.close()
     
-    f.close()
+    print(">> Running tests...")
+    runTests(100)
