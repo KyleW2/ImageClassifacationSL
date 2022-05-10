@@ -1,7 +1,9 @@
 from math import log
+import math
 import numpy
 import pickle
 import time
+import datas
 
 class Instance:
     def __init__(self, attributes, label=None) -> None:
@@ -66,12 +68,9 @@ class LinearRegressionModel:
 
     def sqLoss(self, h, c):
         return (h - c)**2
+    
 
-    def logLoss(self, h, x, y, p):
-        loss = 0
-        for i in self.n_labels:
-            loss += y[i] * log(p[i])
-        return -loss
+
 
     # Find the distance between two vectors
     def eulideanDistance(self, l1: list, l2: list) -> float:
