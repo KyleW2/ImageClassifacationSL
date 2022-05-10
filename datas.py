@@ -6,7 +6,11 @@ from sklearn.decomposition import PCA
 import numpy as np
 
 fullyFormattedFileName = "formattedData"
-
+#3-way-split
+#Data = 50,000
+#Train = 40,000
+#Validation = 10,000
+#Test = 10,000
 def parseData(samples_per_batch = None, formatted = False, save = False):
     # Load batches
     batch1 = unpickle("data/data_batch_1")
@@ -17,6 +21,7 @@ def parseData(samples_per_batch = None, formatted = False, save = False):
 
     print(">> Creating the unholy frankenstein")
     X, y = format(batch1, batch2, batch3, batch4, batch5, samples_per_batch=samples_per_batch)
+
 
     print(">> Summoning and binding test demons")
     # Load test data and format
@@ -80,3 +85,23 @@ def getData():
 if __name__ == "__main__":
     data = getData()
     pass
+
+def printConfusionMatrix(cm):
+    print("True Negative:",cm[0][0])
+    print("False Positive:",cm[0][1])
+    print("False Negative:",cm[1][0])
+    print("True Positive:", cm[1][1])
+
+def confusionMatrix(y, h):
+    true_neg = 0
+    true_pos = 0
+    false_neg = 0
+    false_pos = 0
+    for i in range(len(y)):
+        if y[i] == h[i]:
+            if h[i] == 0: true_neg += 1
+            else: true_pos += 1
+        else:
+            if h[i] == 0: false_neg += 1
+            else: false_pos += 1
+    return [[true_neg, false_pos], [false_neg, true_pos]]

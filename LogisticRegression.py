@@ -11,9 +11,9 @@ class LogisticModel:
     def __init__(self) -> None:
         pass
 
-    def predict(y):
-        if y >= .5: return 1
-        else: return 0
+def predict(y):
+    if y >= .5: return 1
+    else: return 0
 
 def h(x, w):
     return sigmoid(np.transpose(w)@x)
@@ -52,29 +52,34 @@ def crossEntropyLoss(X, y, w):
 #3. θ ←θ − η g # Go the other way instead
 #return θ
 
-def stochasticGradientDescent(X,y,N,iters):
+def GradientDescent(X,y,N,iters):
     num_weights = len(X[0])
     m = len(X)
     theta = [0] * num_weights
-    for i in range(iters):
+    for iter in range(iters):
+        loss = 0
+        predictions = []
         for i in range(m):
             y_hat = h(X[i], theta)
-            #loss = crossEntropyLoss(X[i], y[i], theta)
-            #print("Loss = ", loss)
+            predictions.append(predict(y_hat))
+            loss += crossEntropyLoss(X[i], y[i], theta)
             g = [0] * num_weights
             for j in range(num_weights):
                 g[j] = (y_hat - y[i]) * X[i][j]
             for w in range(num_weights):
                 theta[w] = theta[w] - N * g[w]
+        cm = datas.confusionMatrix(y, predictions)
+        print("Iteration:",iter, "Loss = ", loss)
+        datas.printConfusionMatrix(cm)
     return theta
 
 if __name__ == "__main__":
+
     data = datas.parseData()
     X = data["X"]
     y = data["y"]
-    N = .01
+    N = .00000001
     for i in range(len(y)):
-        if i == 0: y[i] = 1
+        if y[i] == 0: y[i] = 1
         else: y[i] = 0
-    weights = stochasticGradientDescent(X, y, N, 1)
-    print(weights)
+    weights = GradientDescent(X, y, N, 10)
