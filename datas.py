@@ -5,7 +5,9 @@ from sklearn.metrics import accuracy_score, confusion_matrix
 from sklearn.decomposition import PCA
 import numpy as np
 
-def parseData(samples_per_batch = None):
+fullyFormattedFileName = "formattedData"
+
+def parseData(samples_per_batch = None, formatted = False, save = False):
     # Load batches
     batch1 = unpickle("data/data_batch_1")
     batch2 = unpickle("data/data_batch_2")
@@ -20,13 +22,38 @@ def parseData(samples_per_batch = None):
     # Load test data and format
     test = unpickle("data/test_batch")
     X_test, y_test = format(test)
-    return X, y, X_test, y_test
+    data = {"X" : X, "y" : y, "X_test" : X_test, "y_test" : y_test}
+    return data
+
+def pickle_data(obj, filename):
+    import pickle
+    file =  open("data/" + filename, "wb")
+    pickle.dump(obj, file)
 
 def unpickle(file):
     import pickle
     with open(file, "rb") as fo:
         dict = pickle.load(fo, encoding = "bytes")
     return dict
+
+def oneHot(label):
+    y = [0] * 10
+    y[label] = 1
+    return y
+
+def hotOnes(data):
+    Y = []
+    for y in data:
+        Y.append(oneHot(y))
+    return Y
+
+def NormalizeData(data):
+    return (data - np.min(data)) / (np.max(data) - np.min(data))
+
+def hotNormalDataInYourArea(data):
+    new_data = {"X" : NormalizeData(data["X"]), "y" : hotOnes(data["y"]), "X_test" : NormalizeData(data["X_test"]), "y_test" : hotOnes(data["y_test"])}
+    pickle_data(new_data, fullyFormattedFileName)
+    return new_data
 
 # Formatting data into a more digestable form
 def format(*batch, samples_per_batch = None) -> list:
@@ -40,25 +67,16 @@ def format(*batch, samples_per_batch = None) -> list:
             y.append(int(b[b'labels'][i]))
     return X, y
 
-X, y, X_test, y_test = parseData(100)
-y_plt = []
-# for i in range(10):
-#     y_plt.append([])
-#     for x in X[i]:
-#         y_plt[i].append(y[i])
-
 def vectorToImage(X):
     img = np.reshape(X, (3,32,32))
     imgView = np.transpose(img, (1,2,0))
     plt.imshow(imgView)
     plt.show()
-# for i in range(len(X)):
-#     plt.scatter(sum(X[i]),y[i], 1)
 
-# plt.show()
+def getData():
+    try: return unpickle("data/" + fullyFormattedFileName)
+    except: return parseData()
 
-def compress(X):
-    pca_dims = PCA()
-    pca_dims.fit(X)
-    cumsum = np.cumsum(pca_dims.explained_variance_ratio_)
-    d = np.argmax(cumsum >= 0.95) + 1
+if __name__ == "__main__":
+    data = getData()
+    pass
