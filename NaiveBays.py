@@ -1,5 +1,6 @@
 from math import log
 import datas
+import time
 
 class NaiveBayesModel:
     def __init__(self, X, y) -> None:
@@ -10,9 +11,12 @@ class NaiveBayesModel:
     def predict(self, X, labels):
         max = None
         for label in labels:
-            ynb = log(self.prob(label))
+            p_y = self.prob(label)
+            ynb = log(p_y)
             for i in range(len(X)):
-                ynb+=log(self.prob(label, X, i))
+                p_yx = self.prob(label, X[i], i)
+                ynb+=log(p_yx)
+            #print("Ynb=",ynb,"Label=",label,"Prob y",p_y,"Prob x given y",p_yx)
             if max == None or ynb > max:
                 max = ynb
                 best_y = label
@@ -50,9 +54,29 @@ if __name__ == "__main__":
 
     model = NaiveBayesModel(X, y)
     
+    TP = 0
+    FP = 0
+    TN = 0
+    FN = 0
     correct_predictions = 0
-    for i in range(len(X_test)):
+    for i in range(len(y_test)):
+        predictions = []
+        #correct = "Incorrect"
+        #starttime = time.time()
         prediction = model.predict(X_test[i], (0, 1))
-        if prediction == y_test[i]: correct_predictions += 1
+        predictions.append(prediction)
+        #if prediction == y_test[i]: 
+            #correct = "Incorrect"
+            #if y_test[i] == 1: TP += 1
+            #else: TN += 1
+        #else:
+            #if y_test[i] == 1: FP += 1
+            #else: FN += 1
+
+        #print("Prediction",i, "took", time.time()-starttime,"seconds. Prediction:", prediction, "True value:",y_test[i])
         
-    print(correct_predictions)
+    #print("TP:",TP,"FP:",FP,"TN:",TN,"FN:",FN)
+        if i % 50 == 0:
+            datas.pickle_data(predictions, "BayesPredictions")
+
+    datas.pickle_data(predictions, "BayesPredictions")

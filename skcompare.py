@@ -1,49 +1,29 @@
-from sklearn.linear_model import ElasticNet, LinearRegression, LogisticRegression
+from sklearn.linear_model import ElasticNet, LinearRegression, LogisticRegression, Perceptron
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.naive_bayes import BernoulliNB
 from sklearn.metrics import ConfusionMatrixDisplay, accuracy_score, confusion_matrix
 import pickle
 import numpy
 import matplotlib.pyplot as plt
+import datas
 
-def parseData():
-    # Load batches
-    batch1 = unpickle("data/data_batch_1")
-    batch2 = unpickle("data/data_batch_2")
-    batch3 = unpickle("data/data_batch_3")
-    batch4 = unpickle("data/data_batch_4")
-    batch5 = unpickle("data/data_batch_5")
+data = datas.getData("hotSplitData")
 
-    print(">> Creating the unholy frankenstein")
-    X, y = format(batch1, batch2, batch3, batch4, batch5)
+X_train = data["X_train"]
+y_train = datas.getLabelFromHot(data["y_train"], 0)
+X_val = data["X_val"]
+y_val = datas.getLabelFromHot(data["y_val"], 0)
+X_test = data["X_test"]
+y_test = datas.getLabelFromHot(data["y_test"], 0)
+X = X_train + X_val
+y = y_train + y_val
 
-    print(">> Summoning and binding test demons")
-    # Load test data and format
-    test = unpickle("data/test_batch")
-    X_test, y_test = format(test)
-    return X, y, X_test, y_test
-
-def unpickle(file):
-    with open(file, "rb") as fo:
-        dict = pickle.load(fo, encoding = "bytes")
-    return dict
-
-# Formatting data into a more digestable form
-def format(*batch) -> list:
-    X = []
-    y = []
-
-    # Casting all values TO and int from uint8
-    for b in batch:
-        for i in range(len(b[b"data"])):
-            X.append([float(x) for x in b[b'data'][i]])
-            y.append(float(b[b'labels'][i]))
-    return X, y
-
-X, y, X_test, y_test = parseData()
 models = []
-models.append(LinearRegression())
-models.append(LogisticRegression())
-models.append(ElasticNet())
-y_eval = numpy.array(y_test)
+
+models.append(LogisticRegression(penalty="none"))
+models.append(KNeighborsClassifier(n_neighbors=1))
+models.append(BernoulliNB())
+models.append(Perceptron())
 for model in models:
     model.fit(X, y)
     score = model.score(X_test, y_test)
@@ -51,4 +31,4 @@ for model in models:
     predict = model.predict(X_test)
     cm = confusion_matrix(y_test, predict)
     ConfusionMatrixDisplay.from_predictions(y_test, predict)
-    plt.show()
+    plt.savefig("skresults/"+type(model).__name__)

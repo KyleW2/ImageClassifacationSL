@@ -5,6 +5,8 @@ from scipy.stats import logistic
 import numpy as np
 import datas
 import time
+from sklearn.metrics import ConfusionMatrixDisplay, confusion_matrix
+import matplotlib.pyplot as plt
 
 #η = eta
 #θ = theta
@@ -73,8 +75,7 @@ def GradientDescent(X,y,N,iters, theta = None):
         print("Iteration =", iter, "Loss = ", loss)
     return theta
 
-if __name__ == "__main__":
-
+def trainBest():
     data = datas.getData("hotSplitData")
 
     X_train = data["X_train"]
@@ -89,7 +90,7 @@ if __name__ == "__main__":
     models = []
 
     #models.append(LogisticModel(.000000001))
-    models = datas.unpickle("data/10iter1E-9model")
+    models = datas.unpickle("results/LogisticRegression/10iter1E-9model")
     
 
     for model in models:
@@ -99,5 +100,20 @@ if __name__ == "__main__":
         print("Loss =", loss)
         datas.printConfusionMatrix(cm)
 
-    datas.pickle_data(models, "10iter1E-9model")
+    datas.pickle_data(models, "results/LogisticRegression/10iter1E-9model")
+
+def plotConfusionMatrix():
+    data = datas.getData("hotSplitData")
+    X_test = data["X_test"]
+    y_test = datas.getLabelFromHot(data["y_test"], 0)
+    model = datas.unpickle("results/LogisticRegression/10iter1E-9model")
+    predictions = model[0].getPredictions(X_test, y_test)
+    #cm = model.getConfusionMatrix(predictions, y_test)
+    ConfusionMatrixDisplay.from_predictions(y_test, predictions)
+    plt.show()
+
+if __name__ == "__main__":
+    pass
+
+
 
