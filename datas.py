@@ -141,5 +141,9 @@ def confusionResults(TP, FP, TN, FN):
     print("Specificity:",specificity)
     print("Youden:",youden)
 if __name__ == "__main__":
-    pickleAllData()
+    TP = 140
+    FP = 860
+    TN = 8878
+    FN = 122
+    confusionResults(TP,FP,TN,FN)
 
