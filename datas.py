@@ -131,6 +131,15 @@ def pickleAllData():
     hot_split_data = splitData(hot_data)
     pickle_data(hot_split_data, "hotSplitData")
 
+def confusionResults(TP, FP, TN, FN):
+    recall = TP/ (TP + FN)
+    precision = TP / (TP + FP)
+    specificity = TN / (TN + FP)
+    youden = recall - (1 - specificity)
+    print("Recall:",recall)
+    print("Precision:",precision)
+    print("Specificity:",specificity)
+    print("Youden:",youden)
 if __name__ == "__main__":
     pickleAllData()
 
