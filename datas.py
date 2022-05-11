@@ -57,7 +57,10 @@ def NormalizeData(data):
 
 def hotNormalDataInYourArea(data):
     new_data = {"X" : NormalizeData(data["X"]), "y" : hotOnes(data["y"]), "X_test" : NormalizeData(data["X_test"]), "y_test" : hotOnes(data["y_test"])}
-    pickle_data(new_data, fullyFormattedFileName)
+    return new_data
+
+def hotData(data):
+    new_data = {"X" : data["X"], "y" : hotOnes(data["y"]), "X_test" :data["X_test"], "y_test" : hotOnes(data["y_test"])}
     return new_data
 
 # Formatting data into a more digestable form
@@ -78,13 +81,15 @@ def vectorToImage(X):
     plt.imshow(imgView)
     plt.show()
 
-def getData():
-    try: return unpickle("data/" + fullyFormattedFileName)
-    except: return parseData()
+def getLabelFromHot(y, label_index):
+    new_y = []
+    for i in range(len(y)):
+        new_y.append(y[i][label_index])
+    return new_y
 
-if __name__ == "__main__":
-    data = getData()
-    pass
+def getData(filename):
+    try: return unpickle("data/" + filename)
+    except: return None
 
 def printConfusionMatrix(cm):
     print("True Negative:",cm[0][0])
@@ -105,3 +110,27 @@ def confusionMatrix(y, h):
             if h[i] == 0: false_neg += 1
             else: false_pos += 1
     return [[true_neg, false_pos], [false_neg, true_pos]]
+
+def splitData(data):     
+    X = data["X"]
+    y = data["y"]
+    X_train = X[:30000]
+    y_train = y[:30000]
+    X_val = X[30000:]
+    y_val = y[30000:]
+    X_test = data["X_test"]
+    y_test = data["y_test"]
+    new_data = {"X_train" : X_train, "y_train" : y_train, "X_val" : X_val, "y_val" : y_val, "X_test" : X_test, "y_test" : y_test}
+    return new_data
+
+def pickleAllData():
+    data = parseData()
+    pickle_data(data, "parsedData")
+    hot_data = hotData(data)
+    pickle_data(hot_data, "hotData")
+    hot_split_data = splitData(hot_data)
+    pickle_data(hot_split_data, "hotSplitData")
+
+if __name__ == "__main__":
+    pickleAllData()
+

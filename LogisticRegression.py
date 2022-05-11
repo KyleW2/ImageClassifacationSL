@@ -1,4 +1,5 @@
 from audioop import cross
+from copyreg import pickle
 from math import log
 from scipy.stats import logistic
 import numpy as np
@@ -8,8 +9,28 @@ import time
 #η = eta
 #θ = theta
 class LogisticModel:
-    def __init__(self) -> None:
-        pass
+    def __init__(self, N) -> None:
+        self.N = N
+        self.weights = None
+    
+    def train(self, X, y, iters):
+        self.weights = GradientDescent(X, y, self.N, iters, self.weights)
+
+    def getPredictions(self, X, y):
+        predictions = []
+        for i in range(len(y)):
+            predictions.append(predict(h(X[i], self.weights)))
+        return predictions
+
+    def getLoss(self, X, y):
+        loss = 0
+        for i in range(len(y)):
+            loss += crossEntropyLoss(X[i], y[i], self.weights)
+        return loss
+    
+    def getConfusionMatrix(self, X, y):
+        h = self.getPredictions(X, y)
+        return datas.confusionMatrix(y, h)
 
 def predict(y):
     if y >= .5: return 1
@@ -21,65 +42,62 @@ def h(x, w):
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))
 
-#How close the classifier output h is to the correct output y
-#Conditional maximum liklihood estimation, choose weights and bias that maximize the log probability of the true y labels in the training data given oberservation x
-#Neative log likelihood loss, or cross entropy loss
 def crossEntropyLoss(X, y, w):
     p = h(X,w)
-    if p == 1: p = .9999999999
-    if p == 0: p = .0000000001
+    if p == 1: p = .9999999999999999
+    if p == 0: p = .0000000000000001
     return -(y * log(p) + (1 - y) * log(1 - p))
 
-#Gradient Descent
-#Find optimal weights by minimizing the loss function we've defined for the model
-#Find set of weights which minimizes the loss function, averaged over all examples
-#The gradient of a function of many variables is a vector pointing in the direction of the greatest increase of the function
-#∇ = gradient
-#gradient of a single weight w_j = [σ(w·x+b)−y]x_j
-#Online function
-#function STOCHASTIC GRADIENT DESCENT(L(), f(), x, y) returns θ
-# where: L is the loss function
-# f is a function parameterized by θ
-# x is the set of training inputs x(1), x(2),..., x(m)
-# y is the set of training outputs (labels) y(1), y(2),..., y(m)
-#θ ←0
-#repeat til done # see caption
-#For each training tuple (x(i), y(i)) (in random order)
-#1. Optional (for reporting): # How are we doing on this tuple?
-#Compute ˆy(i) = f(x(i);θ) # What is our estimated output ˆy?
-#Compute the loss L(yˆ(i), y(i)) # How far off is ˆy(i) from the true output y(i)?
-#2. g←∇θ L(f(x(i);θ), y(i)) # How should we move θ to maximize loss?
-#3. θ ←θ − η g # Go the other way instead
-#return θ
-
-def GradientDescent(X,y,N,iters):
+def GradientDescent(X,y,N,iters, theta = None):
     num_weights = len(X[0])
     m = len(X)
-    theta = [0] * num_weights
+    if theta == None: theta = [0] * num_weights
+    lastLoss = None
     for iter in range(iters):
         loss = 0
-        predictions = []
         for i in range(m):
             y_hat = h(X[i], theta)
-            predictions.append(predict(y_hat))
             loss += crossEntropyLoss(X[i], y[i], theta)
             g = [0] * num_weights
             for j in range(num_weights):
                 g[j] = (y_hat - y[i]) * X[i][j]
             for w in range(num_weights):
                 theta[w] = theta[w] - N * g[w]
-        cm = datas.confusionMatrix(y, predictions)
-        print("Iteration:",iter, "Loss = ", loss)
-        datas.printConfusionMatrix(cm)
+        #Check if gradient is changing loss meaningfully
+        if lastLoss != None:
+            delta_loss = abs(loss - lastLoss)
+            if delta_loss < 1:
+                print("Loss delta =",delta_loss,"after",iter,"iterations")
+                return theta
+        lastLoss = loss
+        print("Iteration =", iter, "Loss = ", loss)
     return theta
 
 if __name__ == "__main__":
 
-    data = datas.parseData()
-    X = data["X"]
-    y = data["y"]
-    N = .00000001
-    for i in range(len(y)):
-        if y[i] == 0: y[i] = 1
-        else: y[i] = 0
-    weights = GradientDescent(X, y, N, 10)
+    data = datas.getData("hotSplitData")
+
+    X_train = data["X_train"]
+    y_train = datas.getLabelFromHot(data["y_train"], 0)
+    X_val = data["X_val"]
+    y_val = datas.getLabelFromHot(data["y_val"], 0)
+    X_test = data["X_test"]
+    y_test = datas.getLabelFromHot(data["y_test"], 0)
+    X = X_train + X_val
+    y = y_train + y_val
+
+    models = []
+
+    #models.append(LogisticModel(.000000001))
+    models = datas.unpickle("data/10iter1E-9model")
+    
+
+    for model in models:
+        model.train(X, y, 200)
+        loss = model.getLoss(X_test, y_test)
+        cm = model.getConfusionMatrix(X_test, y_test)
+        print("Loss =", loss)
+        datas.printConfusionMatrix(cm)
+
+    datas.pickle_data(models, "10iter1E-9model")
+
